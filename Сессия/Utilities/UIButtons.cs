@@ -71,6 +71,7 @@ namespace Сессия
             System.Diagnostics.Trace.WriteLine("source line number: " + sourceLineNumber);
         }
         #endregion
+
     }
 
     /*

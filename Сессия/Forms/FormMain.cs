@@ -1,54 +1,84 @@
 ﻿using DevExpress.Spreadsheet;
 using DevExpress.Spreadsheet.Export;
+using DevExpress.Utils;
 using DevExpress.XtraBars.Docking2010;
 using DevExpress.XtraEditors;
 using DevExpress.XtraGrid.Views.Base;
 using DevExpress.XtraScheduler;
+using DevExpress.XtraScheduler.Drawing;
+using DevExpress.XtraScheduler.UI;
 using DevExpress.XtraSplashScreen;
 using System;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Сессия.Classes;
+using Сессия.Database;
 
 namespace Сессия
 {
     public partial class FormMain : DevExpress.XtraEditors.XtraForm
     {
         private int LastSplitContainerControlSplitterPosition;
-
         string[] connectionString = Utilities.GetConnectionStrings();
         int iCS = 0, id = 0;
+        Image resImage;
 
         public FormMain()
         {
             InitializeComponent();
+            this.schedulerControlTimeTable.ToolTipController = toolTipControllerScheduler;
+
+            BaseInitialization();
+            LoadData();
+        }
+
+        void BaseInitialization()
+        {
+            SplashImagePainter.Painter.ViewInfo.Stage = "Загрузка компонентов";
+            for (int i = 1; i <= 100; i++)
+            {
+                System.Threading.Thread.Sleep(20);
+                SplashImagePainter.Painter.ViewInfo.Counter = i;
+                SplashScreenManager.Default.Invalidate();
+            }
+
+            #region #toolTipControllerScheduler
+            resImage = Image.FromFile(@"..\..\Resources\appointment.gif");
+            this.toolTipControllerScheduler.ShowBeak = true;
+            this.schedulerControlTimeTable.OptionsView.ToolTipVisibility = ToolTipVisibility.Always;
+            this.toolTipControllerScheduler.ToolTipType = ToolTipType.SuperTip;
+            #endregion
 
             #region #AppointmentEvents
             schedulerStorage1.AppointmentsInserted += new PersistentObjectsEventHandler(schedulerStorage1_AppointmentsInserted);
             schedulerStorage1.AppointmentsChanged += new PersistentObjectsEventHandler(schedulerStorage1_AppointmentsChanged);
             schedulerStorage1.AppointmentsDeleted += new PersistentObjectsEventHandler(schedulerStorage1_AppointmentsDeleted);
             #endregion #AppointmentEvents
-           
+
             #region #AppointmentDependencyEvents
             schedulerStorage1.AppointmentDependenciesInserted += new PersistentObjectsEventHandler(schedulerStorage1_AppointmentDependenciesInserted);
             schedulerStorage1.AppointmentDependenciesChanged += new PersistentObjectsEventHandler(schedulerStorage1_AppointmentDependenciesChanged);
             schedulerStorage1.AppointmentDependenciesDeleted += new PersistentObjectsEventHandler(schedulerStorage1_AppointmentDependenciesDeleted);
             #endregion #AppointmentDependencyEvents
 
+            #region #schedulerControlTimeTable Events
             //Fix the view type and splitter position.
-            schedulerControlTimeTable.ActiveViewChanged += new EventHandler(schedulerControlTimeTable_ActiveViewChanged);
-            this.splitContainerControlScheduler.SplitterPositionChanged += new System.EventHandler(this.splitContainerControlScheduler_SplitterPositionChanged);
-
+            this.schedulerControlTimeTable.ActiveViewChanged += new EventHandler(schedulerControlTimeTable_ActiveViewChanged);
             // Set the date to show existing appointments from the database.
-            schedulerControlTimeTable.Start = DateTime.Today;
-            schedulerControlTimeTable.ActiveViewType = DevExpress.XtraScheduler.SchedulerViewType.Timeline;
-            schedulerControlTimeTable.InitNewAppointment += new AppointmentEventHandler(schedulerControlTimeTable_InitNewAppointment);
+            this.schedulerControlTimeTable.InitNewAppointment += new AppointmentEventHandler(schedulerControlTimeTable_InitNewAppointment);
+            this.schedulerControlTimeTable.AppointmentViewInfoCustomizing += schedulerControlTimeTable_AppointmentViewInfoCustomizing;
+            #endregion
 
-            #region  #scales
+            #region #splitContainerControlScheduler
+            this.splitContainerControlScheduler.SplitterPositionChanged += new System.EventHandler(this.splitContainerControlScheduler_SplitterPositionChanged);
+            #endregion
+
+            #region  #scales TimelineView & GanttView
             TimeScaleCollection scalesTlV = schedulerControlTimeTable.TimelineView.Scales;
             scalesTlV.BeginUpdate();
             try
@@ -78,25 +108,30 @@ namespace Сессия
             {
                 scalesGV.EndUpdate();
             }
+            #endregion #scales
 
-            #region #Adjustment
-            //schedulerControlTimeTable.ActiveViewType = SchedulerViewType.Gantt;
-            //schedulerControlTimeTable.ActiveViewType = SchedulerViewType.Timeline;
+            #region #Adjustment     
+            schedulerControlTimeTable.Start = DateTime.Today;
+            schedulerControlTimeTable.ActiveViewType = DevExpress.XtraScheduler.SchedulerViewType.Timeline;
             schedulerControlTimeTable.GroupType = SchedulerGroupType.Resource;
             schedulerControlTimeTable.GanttView.CellsAutoHeightOptions.Enabled = true;
             // Hide unnecessary visual elements.
-            schedulerControlTimeTable.GanttView.ShowResourceHeaders = false;
-            schedulerControlTimeTable.GanttView.NavigationButtonVisibility = NavigationButtonVisibility.Never;
+            //schedulerControlTimeTable.GanttView.ShowResourceHeaders = false;
+            //schedulerControlTimeTable.GanttView.NavigationButtonVisibility = NavigationButtonVisibility.Never;
             // Disable user sorting in the Resource Tree (clicking the column will not change the sort order).
             колDescription.OptionsColumn.AllowSort = false;
             #endregion #Adjustment
-            #endregion #scales
         }
 
-        private void FormMain_Load(object sender, EventArgs e)
+        void LoadData()
         {
+            SplashImagePainter.Painter.ViewInfo.Counter = 0;
+            SplashImagePainter.Painter.ViewInfo.Stage = "Подключение к БД";
+            SplashScreenManager.Default.Invalidate();
+
             GetDataSet();
 
+            #region #ConnectionString
             for (int i = 0; i < connectionString.Length; i++)
             {
                 string subString = "Сессия.Properties.Settings.SessionDBlConnectionString";
@@ -107,30 +142,35 @@ namespace Сессия
                     iCS = i;
                 }
             }
+            #endregion
 
             #region #CommitIdToDataSource
             schedulerStorage1.Appointments.CommitIdToDataSource = false;
             this.appointmentsTableAdapter.Adapter.RowUpdated += new SqlRowUpdatedEventHandler(appointmentsTableAdapter_RowUpdated);
             #endregion #CommitIdToDataSource
+        }
 
-            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, true, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            SplashScreenManager.HideImage();
+        }
+
+        private void FormMain_Load(object sender, EventArgs e)
+        {
+            //object result = worksheetDataTableAdapter.ScalarQueryWorksheetData();
+            SessionDBlDataSet.WorksheetDataDataTable tabWsDataTable = worksheetDataTableAdapter.GetData();
+            var q = from c in tabWsDataTable.AsEnumerable() select c.IdRow;
+
+            if (q.Count() > 0)
+            {
+                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, true, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+            }
+            else
+                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
         }
 
         #region Работа с БД
-        private void GetDataSet()
-        {
-            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet.TaskDependencies". При необходимости она может быть перемещена или удалена.
-            this.taskDependenciesTableAdapter.Fill(this.sessionDBlDataSet.TaskDependencies);
-            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet.Resources". При необходимости она может быть перемещена или удалена.
-            this.resourcesTableAdapter.Fill(this.sessionDBlDataSet.Resources);
-            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet.Appointments". При необходимости она может быть перемещена или удалена.
-            this.appointmentsTableAdapter.Fill(this.sessionDBlDataSet.Appointments);
-            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet1.Holiday". При необходимости она может быть перемещена или удалена.
-            this.holidayTableAdapter.Fill(this.sessionDBlDataSet.Holiday);
-            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet.Rooms". При необходимости она может быть перемещена или удалена.
-            this.roomsTableAdapter.Fill(this.sessionDBlDataSet.Rooms);
-        }
-
         private void appointmentsTableAdapter_RowUpdated(object sender, SqlRowUpdatedEventArgs e)
         {
             if (e.Status == UpdateStatus.Continue && e.StatementType == StatementType.Insert)
@@ -164,7 +204,6 @@ namespace Сессия
             DateTime dDay;
             string sEndTime, btCaption = ((WindowsUIButton)e.Button).Caption.ToString();
             string sSql = string.Empty;
-            bool bJob = false;
 
             switch (btCaption)
             {
@@ -216,7 +255,17 @@ namespace Сессия
 
                     workbook.LoadDocument(receivedBytes, DevExpress.Spreadsheet.DocumentFormat.OpenXml);
 
-                    if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                    switch (worksheets.Count)
+                    {
+                        case 1:
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+
+                            break;
+                        case 2:
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
+
+                            break;
+                    }
 
                     SplashScreenManager.CloseForm(false);
 
@@ -232,11 +281,12 @@ namespace Сессия
                     workbook.Worksheets[1].Cells["D1"].Value = "AllDay";
                     workbook.Worksheets[1].Cells["E1"].Value = "Subject";
                     workbook.Worksheets[1].Cells["F1"].Value = "Location";
-                    workbook.Worksheets[1].Cells["G1"].Value = "Status";
-                    workbook.Worksheets[1].Cells["H1"].Value = "Label";
-                    workbook.Worksheets[1].Cells["I1"].Value = "ResourceId";
-                    workbook.Worksheets[1].Cells["J1"].Value = "PercentComplete";
-                    workbook.Worksheets[1].Cells["K1"].Value = "TimeZoneId";
+                    workbook.Worksheets[1].Cells["G1"].Value = "Description";
+                    workbook.Worksheets[1].Cells["H1"].Value = "Status";
+                    workbook.Worksheets[1].Cells["I1"].Value = "Label";
+                    workbook.Worksheets[1].Cells["J1"].Value = "ResourceId";
+                    workbook.Worksheets[1].Cells["K1"].Value = "PercentComplete";
+                    workbook.Worksheets[1].Cells["L1"].Value = "TimeZoneId";
 
                     usedRange = workbook.Worksheets[0].GetUsedRange();
                     iRow = 0;
@@ -257,11 +307,11 @@ namespace Сессия
                                                                            workbook.Worksheets[0].GetCellValue(1, iRow).ToString().Trim().Substring(3, 2);
                             workbook.Worksheets[1].Cells[jRow, 2].Value = $"{dDay:d} {sEndTime}";
                             workbook.Worksheets[1].Cells[jRow, 3].Value = 0;
-                            workbook.Worksheets[1].Cells[jRow, 4].Value = workbook.Worksheets[0].GetCellValue(0, iRow).ToString().Trim() + "; " +
-                                                                          workbook.Worksheets[0].GetCellValue(2, iRow).ToString().Trim();
+                            workbook.Worksheets[1].Cells[jRow, 4].Value = workbook.Worksheets[0].GetCellValue(0, iRow).ToString().Trim() + "; Экзамен";
                             workbook.Worksheets[1].Cells[jRow, 5].Value = workbook.Worksheets[0].GetCellValue(4, iRow).ToString().Trim();
-                            workbook.Worksheets[1].Cells[jRow, 6].Value = 2;
-                            workbook.Worksheets[1].Cells[jRow, 7].Value = 3;
+                            workbook.Worksheets[1].Cells[jRow, 6].Value = workbook.Worksheets[0].GetCellValue(2, iRow).ToString().Trim();
+                            workbook.Worksheets[1].Cells[jRow, 7].Value = 2;
+                            workbook.Worksheets[1].Cells[jRow, 8].Value = 3;
 
                             using (SqlConnection connection = new SqlConnection(connectionString[iCS]))
                             {
@@ -269,13 +319,16 @@ namespace Сессия
                                 SqlCommand command = connection.CreateCommand();
                                 command.CommandText = string.Empty;
                                 command.CommandText = "SELECT [Id] FROM Resources WHERE ([Description] Like N'" + workbook.Worksheets[0].GetCellValue(3, iRow).ToString().Trim() + "');";
-                                workbook.Worksheets[1].Cells[jRow, 8].Value = Int32.Parse(Convert.ToString(command.ExecuteScalar()));
+                                workbook.Worksheets[1].Cells[jRow, 9].Value = Int32.Parse(Convert.ToString(command.ExecuteScalar()));
                             }
 
+                            // Придумать как читать процент до завершения при проверке времени проведения экзамена если день совпадает
                             if (Convert.ToDateTime(workbook.Worksheets[1].GetCellValue(2, jRow).ToString().Trim()) < DateTime.Today)
-                                workbook.Worksheets[1].Cells[jRow, 9].Value = 100;
+                                workbook.Worksheets[1].Cells[jRow, 10].Value = 100;
+                            else
+                                workbook.Worksheets[1].Cells[jRow, 10].Value = 0;
 
-                            workbook.Worksheets[1].Cells[jRow, 10].Value = "Russian Standard Time";
+                            workbook.Worksheets[1].Cells[jRow, 11].Value = "Russian Standard Time";
                             workbook.Worksheets[1].ScrollToRow(jRow);
                             iRow += 1;
                             jRow += 1;
@@ -285,8 +338,7 @@ namespace Сессия
                     } while (iRow <= usedRange.RowCount);
 
                     workbook.Worksheets[1].ScrollToRow(0);
-                    workbook.Worksheets[1].Columns.AutoFit(0, 10);
-                    bJob = true;
+                    workbook.Worksheets[1].Columns.AutoFit(0, 11);
 
                     if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, true, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
 
@@ -311,12 +363,17 @@ namespace Сессия
                         command.ExecuteNonQuery();
                     }
 
-                    if (bJob)
+                    switch (worksheets.Count)
                     {
-                        if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                        case 1:
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+
+                            break;
+                        case 2:
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
+
+                            break;
                     }
-                    else
-                        if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
 
                     SplashScreenManager.CloseForm(false);
 
@@ -374,6 +431,7 @@ namespace Сессия
                         objBulk.ColumnMappings.Add("AllDay", "AllDay");
                         objBulk.ColumnMappings.Add("Subject", "Subject");
                         objBulk.ColumnMappings.Add("Location", "Location");
+                        objBulk.ColumnMappings.Add("Description", "Description");
                         objBulk.ColumnMappings.Add("Status", "Status");
                         objBulk.ColumnMappings.Add("Label", "Label");
                         objBulk.ColumnMappings.Add("ResourceId", "ResourceId");
@@ -417,68 +475,22 @@ namespace Сессия
                     workbook.Worksheets.Insert(0, "Лист1");
                     workbook.Worksheets.ActiveWorksheet = workbook.Worksheets[1];
                     workbook.Worksheets.RemoveAt(1);
-                    bJob = false;
 
-                    if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, true, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+                    SessionDBlDataSet.WorksheetDataDataTable tabWsDataTable = worksheetDataTableAdapter.GetData();
+                    var q = from c in tabWsDataTable.AsEnumerable() select c.IdRow;
+
+                    if (q.Count() > 0)
+                    {
+                        if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, true, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+                    }
+                    else
+                        if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
 
                     SplashScreenManager.CloseForm(false);
 
                     break;
             }
         }
-
-        // A custom converter that converts DateTime values to "Month-Year" text strings.
-        class DateTimeToStringConverter : ICellValueToColumnTypeConverter
-        {
-            public bool SkipErrorValues { get; set; }
-            public CellValue EmptyCellValue { get; set; }
-
-            public ConversionResult Convert(Cell readOnlyCell, CellValue cellValue, Type dataColumnType, out object result)
-            {
-                result = DBNull.Value;
-                ConversionResult converted = ConversionResult.Success;
-                if (cellValue.IsEmpty)
-                {
-                    result = EmptyCellValue;
-                    return converted;
-                }
-                if (cellValue.IsError)
-                {
-                    // You can return an error, subsequently the exporter throws an exception if the CellValueConversionError event is unhandled.
-                    //return SkipErrorValues ? ConversionResult.Success : ConversionResult.Error;
-                    result = "N/A";
-                    return ConversionResult.Success;
-                }
-                result = String.Format("{0:MMMM-yyyy}", cellValue.DateTimeValue);
-                return converted;
-            }
-        }
-
-        void exporter_CellValueConversionError(object sender, CellValueConversionErrorEventArgs e)
-        {
-            MessageBox.Show("Error in cell " + e.Cell.GetReferenceA1());
-            e.DataTableValue = null;
-            e.Action = DataTableExporterAction.Continue;
-        }
-
-        Form ShowResult(DataTable result)
-        {
-            Form newForm = new Form();
-            newForm.Width = 600;
-            newForm.Height = 300;
-
-            DevExpress.XtraGrid.GridControl grid = new DevExpress.XtraGrid.GridControl();
-            grid.Dock = DockStyle.Fill;
-            grid.DataSource = result;
-
-            newForm.Controls.Add(grid);
-            grid.ForceInitialize();
-            ((DevExpress.XtraGrid.Views.Grid.GridView)grid.FocusedView).OptionsView.ShowGroupPanel = false;
-
-            newForm.ShowDialog(this);
-            return newForm;
-        }
-
         #endregion
 
         #region Навигационные клавиши GridControl
@@ -585,11 +597,6 @@ namespace Сессия
             CommitTask();
             schedulerStorage1.SetAppointmentId(((Appointment)e.Objects[0]), id);
         }
-        void CommitTask()
-        {
-            appointmentsTableAdapter.Update(sessionDBlDataSet);
-            this.sessionDBlDataSet.AcceptChanges();
-        }
         private void schedulerStorage1_AppointmentDependenciesChanged(object sender, PersistentObjectsEventArgs e)
         {
             CommitTaskDependency();
@@ -602,15 +609,24 @@ namespace Сессия
         {
             CommitTaskDependency();
         }
+        void CommitTask()
+        {
+            appointmentsTableAdapter.Update(sessionDBlDataSet);
+            this.sessionDBlDataSet.AcceptChanges();
+        }
         void CommitTaskDependency()
         {
             taskDependenciesTableAdapter.Update(this.sessionDBlDataSet);
             this.sessionDBlDataSet.AcceptChanges();
         }
+        #endregion
+
+        #region #schedulerControlTimeTable
         private void schedulerControlTimeTable_ActiveViewChanged(object sender, EventArgs e)
         {
             this.splitContainerControlScheduler.SplitterPositionChanged -= new System.EventHandler(this.splitContainerControlScheduler_SplitterPositionChanged);
             bool isGanttView = schedulerControlTimeTable.ActiveViewType == SchedulerViewType.Gantt;
+
             try
             {
                 splitContainerControlScheduler.SplitterPosition = (isGanttView) ? LastSplitContainerControlSplitterPosition : 0;
@@ -626,12 +642,138 @@ namespace Сессия
             if (e.Appointment.End.Date > e.Appointment.Start.Date)
                 e.Appointment.End = new DateTime(e.Appointment.Start.Year, e.Appointment.Start.Month, e.Appointment.Start.Day, 19, 0, 0);
         }
+
+        #region #tooltip_EmptySubject
+        private void schedulerControlTimeTable_AppointmentViewInfoCustomizing(object sender, AppointmentViewInfoCustomizingEventArgs e)
+        {
+            if (e.ViewInfo.DisplayText == String.Empty)
+                e.ViewInfo.ToolTipText = String.Format("Started at {0:g}", e.ViewInfo.Appointment.Start);
+        }
+        #endregion #tooltip_EmptySubject
+        #endregion
+
+        #region #EditAppointmentFormShowing
+        private void schedulerControlTimeTable_EditAppointmentFormShowing(object sender, AppointmentFormEventArgs e)
+        {
+            CustomAppointmentForm form = new CustomAppointmentForm(sender as SchedulerControl, e.Appointment, e.OpenRecurrenceForm);
+            try
+            {
+                e.DialogResult = form.ShowDialog();
+                e.Handled = true;
+            }
+            finally
+            {
+                form.Dispose();
+            }
+            
+/*
+            XtraForm form;
+            // Create a form.
+            form = new AppointmentFormRibbonStyle(schedulerControlTimeTable, e.Appointment, e.OpenRecurrenceForm);
+            // Comply with restrictions.
+            ((AppointmentFormRibbonStyle)form).ReadOnly = e.ReadOnly;
+            form.LookAndFeel.ParentLookAndFeel = schedulerControlTimeTable.LookAndFeel;
+            e.DialogResult = form.ShowDialog(e.Parent);
+            e.Handled = true;
+*/
+        }
         #endregion
 
         #region splitContainerControlScheduler
         private void splitContainerControlScheduler_SplitterPositionChanged(object sender, EventArgs e)
         {
             LastSplitContainerControlSplitterPosition = splitContainerControlScheduler.SplitterPosition;
+        }
+        #endregion
+
+        #region #ToolTipControllerBeforeShow
+        private void toolTipControllerScheduler_BeforeShow(object sender, ToolTipControllerShowEventArgs e)
+        {
+            AppointmentViewInfo aptViewInfo;
+            ToolTipController controller = (ToolTipController)sender;
+            try
+            {
+                aptViewInfo = (AppointmentViewInfo)controller.ActiveObject;
+            }
+            catch
+            {
+                return;
+            }
+
+            if (aptViewInfo == null) return;
+
+            if (toolTipControllerScheduler.ToolTipType == ToolTipType.Standard)
+            {
+                e.IconType = ToolTipIconType.Information;
+                e.ToolTip = aptViewInfo.Description;
+            }
+
+            if (toolTipControllerScheduler.ToolTipType == ToolTipType.SuperTip)
+            {
+                SuperToolTip SuperTip = new SuperToolTip();
+                SuperToolTipSetupArgs args = new SuperToolTipSetupArgs();
+                args.Title.Text = aptViewInfo.Appointment.Location.ToString(); 
+                args.Title.Font = new Font("Times New Roman", 14);
+                args.Contents.Text = aptViewInfo.Description;
+                args.Contents.Image = resImage;
+                args.ShowFooterSeparator = true;
+                args.Footer.Font = new Font("Comic Sans MS", 8);
+                args.Footer.Text = aptViewInfo.Appointment.Subject.ToString();
+                SuperTip.Setup(args);
+                e.SuperTip = SuperTip;
+            }
+        }
+        #endregion
+
+
+        #region #Пользовательские функции и процедуры
+        void GetDataSet()
+        {
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet.TaskDependencies". При необходимости она может быть перемещена или удалена.
+            this.taskDependenciesTableAdapter.Fill(this.sessionDBlDataSet.TaskDependencies);
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet.Resources". При необходимости она может быть перемещена или удалена.
+            this.resourcesTableAdapter.Fill(this.sessionDBlDataSet.Resources);
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet.Appointments". При необходимости она может быть перемещена или удалена.
+            this.appointmentsTableAdapter.Fill(this.sessionDBlDataSet.Appointments);
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet1.Holiday". При необходимости она может быть перемещена или удалена.
+            this.holidayTableAdapter.Fill(this.sessionDBlDataSet.Holiday);
+            // TODO: данная строка кода позволяет загрузить данные в таблицу "sessionDBlDataSet.Rooms". При необходимости она может быть перемещена или удалена.
+            this.roomsTableAdapter.Fill(this.sessionDBlDataSet.Rooms);
+            // Мероприятия
+            this.schedulerStorage1.Appointments.Labels.Clear();
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.SystemColors.Window, "Нет", "&Нет");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(194)))), ((int)(((byte)(190))))), "ГЭК", "&ГЭК");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(168)))), ((int)(((byte)(213)))), ((int)(((byte)(255))))), "Консультация", "&Консультация");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(193)))), ((int)(((byte)(244)))), ((int)(((byte)(156))))), "Экзамен", "&Экзамен");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(243)))), ((int)(((byte)(228)))), ((int)(((byte)(199))))), "Зачет", "&Зачет");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(206)))), ((int)(((byte)(147))))), "Доп. экзамен", "&Доп. экзамен");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(199)))), ((int)(((byte)(244)))), ((int)(((byte)(255))))), "Доп. зачет", "До&п. зачет");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(207)))), ((int)(((byte)(219)))), ((int)(((byte)(152))))), "Иное", "&Иное");
+        }
+
+        Form ShowResult(DataTable result)
+        {
+            Form newForm = new Form();
+            newForm.Width = 600;
+            newForm.Height = 300;
+
+            DevExpress.XtraGrid.GridControl grid = new DevExpress.XtraGrid.GridControl();
+            grid.Dock = DockStyle.Fill;
+            grid.DataSource = result;
+
+            newForm.Controls.Add(grid);
+            grid.ForceInitialize();
+            ((DevExpress.XtraGrid.Views.Grid.GridView)grid.FocusedView).OptionsView.ShowGroupPanel = false;
+
+            newForm.ShowDialog(this);
+            return newForm;
+        }
+
+        void exporter_CellValueConversionError(object sender, CellValueConversionErrorEventArgs e)
+        {
+            MessageBox.Show("Ошибка в ячейке " + e.Cell.GetReferenceA1());
+            e.DataTableValue = null;
+            e.Action = DataTableExporterAction.Continue;
         }
         #endregion
     }

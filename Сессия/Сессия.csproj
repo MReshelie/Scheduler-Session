@@ -97,8 +97,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\CustomTimeScale.cs" />
+    <Compile Include="Classes\DrawImplementer.cs" />
     <Compile Include="Database\SessionDBlDataSet.cs">
       <DependentUpon>SessionDBlDataSet.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\CustomAppointmentForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CustomAppointmentForm.Designer.cs">
+      <DependentUpon>CustomAppointmentForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FormMain.cs">
       <SubType>Form</SubType>
@@ -120,6 +127,9 @@
       <DependentUpon>SessionDBlDataSet.xsd</DependentUpon>
     </Compile>
     <Compile Include="Utilities\UIButtons.cs" />
+    <EmbeddedResource Include="Forms\CustomAppointmentForm.resx">
+      <DependentUpon>CustomAppointmentForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>
@@ -182,6 +192,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="610.ico" />
+    <None Include="Resources\appointment.gif">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <EmbeddedResource Include="Resources\rasp.jpg" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

@@ -119,6 +119,8 @@
             this.appointmentsTableAdapter = new Сессия.Database.SessionDBlDataSetTableAdapters.AppointmentsTableAdapter();
             this.resourcesTableAdapter = new Сессия.Database.SessionDBlDataSetTableAdapters.ResourcesTableAdapter();
             this.taskDependenciesTableAdapter = new Сессия.Database.SessionDBlDataSetTableAdapters.TaskDependenciesTableAdapter();
+            this.worksheetDataTableAdapter = new Сессия.Database.SessionDBlDataSetTableAdapters.WorksheetDataTableAdapter();
+            this.toolTipControllerScheduler = new DevExpress.Utils.ToolTipController(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.navigationFrame)).BeginInit();
             this.navigationFrame.SuspendLayout();
             this.excelNavigationPage.SuspendLayout();
@@ -291,7 +293,6 @@
             // 
             // excelNavigationPage
             // 
-            this.excelNavigationPage.Caption = "excelNavigationPage";
             this.excelNavigationPage.Controls.Add(this.layoutControl1);
             this.excelNavigationPage.Controls.Add(this.employeesLabelControl);
             this.excelNavigationPage.Name = "excelNavigationPage";
@@ -431,7 +432,6 @@
             // 
             // settingsNavigationPage
             // 
-            this.settingsNavigationPage.Caption = "settingsNavigationPage";
             this.settingsNavigationPage.Controls.Add(this.layoutControl2);
             this.settingsNavigationPage.Controls.Add(this.customersLabelControl);
             this.settingsNavigationPage.Name = "settingsNavigationPage";
@@ -738,7 +738,6 @@
             // 
             // schedulerNavigationPage
             // 
-            this.schedulerNavigationPage.Caption = "schedulerNavigationPage";
             this.schedulerNavigationPage.Controls.Add(this.splitContainerControl1);
             this.schedulerNavigationPage.Name = "schedulerNavigationPage";
             this.schedulerNavigationPage.Size = new System.Drawing.Size(1223, 647);
@@ -821,8 +820,11 @@
             this.schedulerControlTimeTable.Views.DayView.TimeRulers.Add(timeRuler1);
             this.schedulerControlTimeTable.Views.FullWeekView.Enabled = true;
             this.schedulerControlTimeTable.Views.FullWeekView.TimeRulers.Add(timeRuler2);
+            this.schedulerControlTimeTable.Views.GanttView.WorkTime = new DevExpress.XtraScheduler.WorkTimeInterval(System.TimeSpan.Parse("08:00:00"), System.TimeSpan.Parse("21:00:00"));
+            this.schedulerControlTimeTable.Views.TimelineView.WorkTime = new DevExpress.XtraScheduler.WorkTimeInterval(System.TimeSpan.Parse("08:00:00"), System.TimeSpan.Parse("21:00:00"));
             this.schedulerControlTimeTable.Views.WeekView.Enabled = false;
             this.schedulerControlTimeTable.Views.WorkWeekView.TimeRulers.Add(timeRuler3);
+            this.schedulerControlTimeTable.EditAppointmentFormShowing += new DevExpress.XtraScheduler.AppointmentFormEventHandler(this.schedulerControlTimeTable_EditAppointmentFormShowing);
             // 
             // schedulerStorage1
             // 
@@ -831,8 +833,8 @@
             this.schedulerStorage1.AppointmentDependencies.Mappings.DependentId = "DependentId";
             this.schedulerStorage1.AppointmentDependencies.Mappings.ParentId = "ParentId";
             this.schedulerStorage1.AppointmentDependencies.Mappings.Type = "Type";
-            this.schedulerStorage1.Appointments.CustomFieldMappings.Add(new DevExpress.XtraScheduler.AppointmentCustomFieldMapping("CustomField1", "CustomField1"));
             this.schedulerStorage1.Appointments.CustomFieldMappings.Add(new DevExpress.XtraScheduler.AppointmentCustomFieldMapping("ResourceIds", "ResourceIds"));
+            this.schedulerStorage1.Appointments.CustomFieldMappings.Add(new DevExpress.XtraScheduler.AppointmentCustomFieldMapping("Contacts", "Contacts"));
             this.schedulerStorage1.Appointments.DataSource = this.appointmentsBindingSource;
             this.schedulerStorage1.Appointments.Mappings.AllDay = "AllDay";
             this.schedulerStorage1.Appointments.Mappings.AppointmentId = "UniqueId";
@@ -881,7 +883,9 @@
             this.dateNavigator1.CalendarTimeProperties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
             new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
             this.dateNavigator1.Cursor = System.Windows.Forms.Cursors.Default;
+            this.dateNavigator1.DateTime = new System.DateTime(2017, 5, 17, 0, 0, 0, 0);
             this.dateNavigator1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dateNavigator1.EditValue = new System.DateTime(2017, 5, 17, 0, 0, 0, 0);
             this.dateNavigator1.FirstDayOfWeek = System.DayOfWeek.Monday;
             this.dateNavigator1.Location = new System.Drawing.Point(0, 0);
             this.dateNavigator1.Name = "dateNavigator1";
@@ -951,6 +955,14 @@
             // taskDependenciesTableAdapter
             // 
             this.taskDependenciesTableAdapter.ClearBeforeFill = true;
+            // 
+            // worksheetDataTableAdapter
+            // 
+            this.worksheetDataTableAdapter.ClearBeforeFill = true;
+            // 
+            // toolTipControllerScheduler
+            // 
+            this.toolTipControllerScheduler.BeforeShow += new DevExpress.Utils.ToolTipControllerBeforeShowEventHandler(this.toolTipControllerScheduler_BeforeShow);
             // 
             // FormMain
             // 
@@ -1082,5 +1094,7 @@
         private DevExpress.XtraSpreadsheet.SpreadsheetNameBoxControl spreadsheetNameBoxControl1;
         private DevExpress.XtraLayout.LayoutControlItem layoutControlItem5;
         private DevExpress.XtraLayout.LayoutControlItem layoutControlItem6;
+        private Database.SessionDBlDataSetTableAdapters.WorksheetDataTableAdapter worksheetDataTableAdapter;
+        private DevExpress.Utils.ToolTipController toolTipControllerScheduler;
     }
 }
