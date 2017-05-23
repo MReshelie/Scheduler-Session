@@ -518,12 +518,11 @@ namespace Сессия
 
                             workbook.Worksheets[2].Cells[jRow, 0].Value = words[0].Trim();
                             workbook.Worksheets[2].Cells[jRow, 1].Value = rExsam.StartDate.ToString("HH:mm");
-
+                            workbook.Worksheets[2].Cells[jRow, 1].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
                             workbook.Worksheets[2].Cells[jRow, 2].Value = arrLabel.GetByIndex(rExsam.Label).ToString();
-
                             workbook.Worksheets[2].Cells[jRow, 3].Value = rExsam.Description;
-
                             workbook.Worksheets[2].Cells[jRow, 4].Value = sessionDBlDataSet.Resources.Where(n => n.Id == rExsam.ResourceId).Select(n => n.Description).First();
+                            workbook.Worksheets[2].Cells[jRow, 4].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
                             workbook.Worksheets[2].Cells[jRow, 5].Value = rExsam.Location;
 
                             // Поиск консультации
@@ -537,8 +536,11 @@ namespace Сессия
                                     if (rCons.Label > 3)
                                     {
                                         workbook.Worksheets[2].Cells[jRow, 6].Value = rCons.StartDate.Date;
+                                        workbook.Worksheets[2].Cells[jRow, 6].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
                                         workbook.Worksheets[2].Cells[jRow, 7].Value = rCons.StartDate.ToString("HH:mm");
+                                        workbook.Worksheets[2].Cells[jRow, 7].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
                                         workbook.Worksheets[2].Cells[jRow, 8].Value = sessionDBlDataSet.Resources.Where(n => n.Id == rCons.ResourceId).Select(n => n.Description).First();
+                                        workbook.Worksheets[2].Cells[jRow, 8].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
                                         workbook.Worksheets[2].Cells[jRow, 9].Value = arrLabel.GetByIndex(rCons.Label).ToString();
                                     }
 
