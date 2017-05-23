@@ -352,6 +352,7 @@
             new DevExpress.XtraBars.Docking2010.WindowsUIButton("Сохранить в БД", DevExpress.XtraBars.Docking2010.ButtonStyle.PushButton),
             new DevExpress.XtraBars.Docking2010.WindowsUISeparator(),
             new DevExpress.XtraBars.Docking2010.WindowsUIButton("Расписание", DevExpress.XtraBars.Docking2010.ButtonStyle.PushButton),
+            new DevExpress.XtraBars.Docking2010.WindowsUIButton("Консультации", DevExpress.XtraBars.Docking2010.ButtonStyle.PushButton),
             new DevExpress.XtraBars.Docking2010.WindowsUISeparator(),
             new DevExpress.XtraBars.Docking2010.WindowsUIButton("Очистить", "", DevExpress.XtraBars.Docking2010.ImageLocation.Default, DevExpress.XtraBars.Docking2010.ButtonStyle.PushButton, "", true, -1, true, null, true, false, true, null, "Clean", -1, false, false)});
             this.windowsUIButtonPanelExcel.ContentAlignment = System.Drawing.ContentAlignment.TopCenter;

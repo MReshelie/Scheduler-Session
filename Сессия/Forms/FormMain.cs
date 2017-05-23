@@ -6,7 +6,6 @@ using DevExpress.XtraEditors;
 using DevExpress.XtraGrid.Views.Base;
 using DevExpress.XtraScheduler;
 using DevExpress.XtraScheduler.Drawing;
-using DevExpress.XtraScheduler.UI;
 using DevExpress.XtraSplashScreen;
 using System;
 using System.Configuration;
@@ -158,16 +157,15 @@ namespace Сессия
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            //object result = worksheetDataTableAdapter.ScalarQueryWorksheetData();
             SessionDBlDataSet.WorksheetDataDataTable tabWsDataTable = worksheetDataTableAdapter.GetData();
             var q = from c in tabWsDataTable.AsEnumerable() select c.IdRow;
 
             if (q.Count() > 0)
             {
-                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, true, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, true, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
             }
             else
-                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, false, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
         }
 
         #region Работа с БД
@@ -218,7 +216,7 @@ namespace Сессия
                         {
                             spreadsheetControlExcel.LoadDocument(stream, DevExpress.Spreadsheet.DocumentFormat.OpenXml);
 
-                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
                         }
 
                         workbook.Worksheets[0].Name = "МАДИ";
@@ -247,7 +245,7 @@ namespace Сессия
                             SplashScreenManager.CloseForm(false);
 
                             if (XtraMessageBox.Show("В БД нет ранее сохраненных данных.", "Загрузка данных", MessageBoxButtons.OK, MessageBoxIcon.Warning) == DialogResult.OK)
-                                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+                                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, false, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
 
                             break;
                         }
@@ -258,11 +256,20 @@ namespace Сессия
                     switch (worksheets.Count)
                     {
                         case 1:
-                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
 
                             break;
                         case 2:
-                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                            if (sessionDBlDataSet.Appointments.Count() > 0)
+                            {
+                                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                            }
+                            else
+                                if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, true, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+
+                            break;
+                        case 3:
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
 
                             break;
                     }
@@ -340,7 +347,7 @@ namespace Сессия
                     workbook.Worksheets[1].ScrollToRow(0);
                     workbook.Worksheets[1].Columns.AutoFit(0, 11);
 
-                    if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, true, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                    if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, true, false, true, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
 
                     SplashScreenManager.CloseForm(false);
 
@@ -366,11 +373,15 @@ namespace Сессия
                     switch (worksheets.Count)
                     {
                         case 1:
-                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, true, true, false, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
 
                             break;
                         case 2:
-                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, true, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+
+                            break;
+                        case 3:
+                            if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, false, false, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
 
                             break;
                     }
@@ -447,13 +458,145 @@ namespace Сессия
                     }
                     catch (Exception ex)
                     {
-                        string message = string.Format("Cannot update data in a database table.\n{0}", ex.Message);
-                        MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        string message = string.Format("Нет возможности обновить данные в таблице БД.\n{0}", ex.Message);
+                        MessageBox.Show(message, "Ошибка записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
 
                     GetDataSet();
 
-                    if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, true, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
+                    if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, true, false, false, true, false, true })) Console.WriteLine("Что то пошло не так!!!");
+
+                    SplashScreenManager.CloseForm(false);
+
+                    break;
+                case "Консультации":
+                    SplashScreenManager.ShowForm(typeof(Сессия.Forms.WaitFormUpdate));
+                    SplashScreenManager.Default.SetWaitFormCaption("Ожидайте пожалуйста.");
+
+                    if (worksheets.Count == 3)
+                        workbook.Worksheets.RemoveAt(worksheets.Count - 1);
+
+                    AppointmentLabelCollection arrLabel = this.schedulerStorage1.Appointments.Labels;
+                    string[] words;
+                    string sRange = string.Empty;
+                    DateTime dDayCur = DateTime.Today;
+
+                    workbook.Worksheets.Insert(2, "Консультации");
+                    workbook.Worksheets[2].Cells["A1"].Value = "Группа";
+                    workbook.Worksheets[2].Cells["B1"].Value = "Время";
+                    workbook.Worksheets[2].Cells["C1"].Value = "Аттестация";
+                    workbook.Worksheets[2].Cells["D1"].Value = "Дисциплина";
+                    workbook.Worksheets[2].Cells["E1"].Value = "Аудит.";
+                    workbook.Worksheets[2].Cells["F1"].Value = "Преподаватель";
+                    workbook.Worksheets[2].Cells["G1"].Value = "Дата";
+                    workbook.Worksheets[2].Cells["H1"].Value = "Время";
+                    workbook.Worksheets[2].Cells["I1"].Value = "Аудит.";
+                    workbook.Worksheets[2].Cells["J1"].Value = "Вид.";
+
+                    var qExsam = sessionDBlDataSet.Appointments.OrderBy(x => x.StartDate.Date).ThenBy(x => x.ResourceId);
+
+                    if (qExsam.Count() > 0)
+                    {
+                        jRow = 1;
+                        foreach (var rExsam in qExsam)
+                        {
+                            if (jRow == 1)
+                            {
+                                dDayCur = rExsam.StartDate.Date;
+                                workbook.Worksheets[2].Cells[jRow, 0].Value = dDayCur; //.ToString("dd MMMM yyy - dddd");
+                                jRow++;
+                            }
+                            else
+                                if (dDayCur.Date != rExsam.StartDate.Date)
+                            {
+                                dDayCur = rExsam.StartDate;
+                                workbook.Worksheets[2].Cells[jRow, 0].Value = dDayCur;//.ToString("dd MMMM yyy - dddd");
+                                jRow++;
+                            }
+
+                            words = rExsam.Subject.Split(';');
+
+                            workbook.Worksheets[2].Cells[jRow, 0].Value = words[0].Trim();
+                            workbook.Worksheets[2].Cells[jRow, 1].Value = rExsam.StartDate.ToString("HH:mm");
+
+                            workbook.Worksheets[2].Cells[jRow, 2].Value = arrLabel.GetByIndex(rExsam.Label).ToString();
+
+                            workbook.Worksheets[2].Cells[jRow, 3].Value = rExsam.Description;
+
+                            workbook.Worksheets[2].Cells[jRow, 4].Value = sessionDBlDataSet.Resources.Where(n => n.Id == rExsam.ResourceId).Select(n => n.Description).First();
+                            workbook.Worksheets[2].Cells[jRow, 5].Value = rExsam.Location;
+
+                            // Поиск консультации
+                            var qCons = qExsam.Where(m => m.StartDate.Date < rExsam.StartDate.Date).
+                                               Where(m => m.Location == rExsam.Location).
+                                               Where(m => m.Subject.Contains(words[0].Trim()) == true).
+                                               Select(m => new { m.StartDate, m.ResourceId, m.Location, m.Label });
+
+                            if (qCons.Count() > 0)
+                                foreach (var rCons in qCons)
+                                    if (rCons.Label > 3)
+                                    {
+                                        workbook.Worksheets[2].Cells[jRow, 6].Value = rCons.StartDate.Date;
+                                        workbook.Worksheets[2].Cells[jRow, 7].Value = rCons.StartDate.ToString("HH:mm");
+                                        workbook.Worksheets[2].Cells[jRow, 8].Value = sessionDBlDataSet.Resources.Where(n => n.Id == rCons.ResourceId).Select(n => n.Description).First();
+                                        workbook.Worksheets[2].Cells[jRow, 9].Value = arrLabel.GetByIndex(rCons.Label).ToString();
+                                    }
+
+                            SplashScreenManager.Default.SetWaitFormDescription(string.Format("Обработана {0:N0}-я строка", jRow));
+                            jRow++;
+                        }
+                    }
+
+                    workbook.Worksheets[2].ScrollToRow(1);
+                    workbook.Worksheets[2].Range["A1:J1"].Font.Size = 14;
+                    workbook.Worksheets[2].Range["A1:J1"].Font.FontStyle = SpreadsheetFontStyle.Bold;
+                    workbook.Worksheets[2].Columns.AutoFit(0, 9);
+
+                    usedRange = workbook.Worksheets[2].GetUsedRange();
+                    for (jRow = 0; jRow < usedRange.RowCount; jRow++)
+                        if (workbook.Worksheets[2].GetCellValue(0, jRow).IsDateTime)
+                        {
+                            sRange = "A" + (jRow + 1).ToString().Trim() + ":J" + (jRow + 1).ToString().Trim();
+                            dDayCur = workbook.Worksheets[2].GetCellValue(0, jRow).DateTimeValue;
+                            workbook.Worksheets[2].MergeCells(workbook.Worksheets[2].Range[sRange]);
+                            workbook.Worksheets[2].Cells[jRow, 0].Value = dDayCur.ToString("dd MMMM yyy - dddd");
+                            workbook.Worksheets[2].Range[sRange].Font.FontStyle = SpreadsheetFontStyle.Bold;
+                            workbook.Worksheets[2].Range[sRange].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                            SplashScreenManager.Default.SetWaitFormDescription(string.Format("Обработана {0:N0}-я строка", jRow));
+                        }
+
+                    usedRange.Borders.SetAllBorders(Color.Black, BorderLineStyle.Thick);
+                    usedRange.SetInsideBorders(Color.Black, BorderLineStyle.Thin);
+                    workbook.Worksheets[2].Range["A1:J1"].Borders.SetOutsideBorders(Color.Black, BorderLineStyle.Thick);
+
+                    workbook.Worksheets[2].ScrollToRow(1);
+                    workbook.Worksheets[2].Rows["1"].Insert();
+                    workbook.Worksheets[2].MergeCells(workbook.Worksheets[2].Range["A1:J1"]);
+                    workbook.Worksheets[2].Cells["A1"].Value = "Московский автомобильно-дорожный государственный технический университет (МАДИ)";
+                    workbook.Worksheets[2].Rows["2"].Insert();
+                    workbook.Worksheets[2].MergeCells(workbook.Worksheets[2].Range["A2:J2"]);
+
+                    if (dDayCur.Month >= 2 && dDayCur.Month <= 10)
+                        workbook.Worksheets[2].Cells["A2"].Value = "Расписание экзаменнационной летней сессии " + (dDayCur.Year - 1).ToString() + "/" + dDayCur.Year.ToString() + " уч. года";
+                    else
+                        workbook.Worksheets[2].Cells["A2"].Value = "Расписание экзаменнационной зимней сессии " + dDayCur.Year.ToString() + "/" + (dDayCur.Year + 1).ToString() + " уч. года";
+
+                    workbook.Worksheets[2].Rows["3"].Insert();
+                    workbook.Worksheets[2].MergeCells(workbook.Worksheets[2].Range["A3:J3"]);
+                    workbook.Worksheets[2].Rows["4"].Insert();
+                    workbook.Worksheets[2].MergeCells(workbook.Worksheets[2].Range["A4:J4"]);
+                    workbook.Worksheets[2].Cells["A4"].Value = "Кафедра \"Автоматизированные системы управления\"";
+                    workbook.Worksheets[2].Rows["5"].Insert();
+                    workbook.Worksheets[2].MergeCells(workbook.Worksheets[2].Range["A5:J5"]);
+                    workbook.Worksheets[2].Range["A1:J6"].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                    workbook.Worksheets[2].Range["A1:J4"].Font.Size = 16;
+                    workbook.Worksheets[2].Range["A1:J4"].Font.FontStyle = SpreadsheetFontStyle.BoldItalic;
+                    workbook.Worksheets[2].Range["A1:J6"].Borders.SetAllBorders(Color.Black, BorderLineStyle.None);
+                    workbook.Worksheets[2].Range["A6:J6"].Borders.SetAllBorders(Color.Black, BorderLineStyle.Thin);
+                    workbook.Worksheets[2].Range["A6:J6"].Borders.SetOutsideBorders(Color.Black, BorderLineStyle.Thick);
+                    workbook.Worksheets[2].ScrollToRow(0);
+
+                    if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { false, false, false, false, true, false, false, false, false, true })) Console.WriteLine("Что то пошло не так!!!");
 
                     SplashScreenManager.CloseForm(false);
 
@@ -476,15 +619,12 @@ namespace Сессия
                     workbook.Worksheets.ActiveWorksheet = workbook.Worksheets[1];
                     workbook.Worksheets.RemoveAt(1);
 
-                    SessionDBlDataSet.WorksheetDataDataTable tabWsDataTable = worksheetDataTableAdapter.GetData();
-                    var q = from c in tabWsDataTable.AsEnumerable() select c.IdRow;
-
-                    if (q.Count() > 0)
+                    if (sessionDBlDataSet.WorksheetData.Count() > 0)
                     {
-                        if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, true, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+                        if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, true, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
                     }
                     else
-                        if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
+                        if (!UIButtons.UIButtonsEnabled(windowsUIButtonPanelExcel, new bool[] { true, false, false, false, false, false, false, false, false, false })) Console.WriteLine("Что то пошло не так!!!");
 
                     SplashScreenManager.CloseForm(false);
 
@@ -665,17 +805,17 @@ namespace Сессия
             {
                 form.Dispose();
             }
-            
-/*
-            XtraForm form;
-            // Create a form.
-            form = new AppointmentFormRibbonStyle(schedulerControlTimeTable, e.Appointment, e.OpenRecurrenceForm);
-            // Comply with restrictions.
-            ((AppointmentFormRibbonStyle)form).ReadOnly = e.ReadOnly;
-            form.LookAndFeel.ParentLookAndFeel = schedulerControlTimeTable.LookAndFeel;
-            e.DialogResult = form.ShowDialog(e.Parent);
-            e.Handled = true;
-*/
+
+            /*
+                        XtraForm form;
+                        // Create a form.
+                        form = new AppointmentFormRibbonStyle(schedulerControlTimeTable, e.Appointment, e.OpenRecurrenceForm);
+                        // Comply with restrictions.
+                        ((AppointmentFormRibbonStyle)form).ReadOnly = e.ReadOnly;
+                        form.LookAndFeel.ParentLookAndFeel = schedulerControlTimeTable.LookAndFeel;
+                        e.DialogResult = form.ShowDialog(e.Parent);
+                        e.Handled = true;
+            */
         }
         #endregion
 
@@ -712,7 +852,7 @@ namespace Сессия
             {
                 SuperToolTip SuperTip = new SuperToolTip();
                 SuperToolTipSetupArgs args = new SuperToolTipSetupArgs();
-                args.Title.Text = aptViewInfo.Appointment.Location.ToString(); 
+                args.Title.Text = aptViewInfo.Appointment.Location.ToString();
                 args.Title.Font = new Font("Times New Roman", 14);
                 args.Contents.Text = aptViewInfo.Description;
                 args.Contents.Image = resImage;
@@ -743,11 +883,11 @@ namespace Сессия
             this.schedulerStorage1.Appointments.Labels.Clear();
             this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.SystemColors.Window, "Нет", "&Нет");
             this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(194)))), ((int)(((byte)(190))))), "ГЭК", "&ГЭК");
-            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(168)))), ((int)(((byte)(213)))), ((int)(((byte)(255))))), "Консультация", "&Консультация");
             this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(193)))), ((int)(((byte)(244)))), ((int)(((byte)(156))))), "Экзамен", "&Экзамен");
-            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(243)))), ((int)(((byte)(228)))), ((int)(((byte)(199))))), "Зачет", "&Зачет");
             this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(206)))), ((int)(((byte)(147))))), "Доп. экзамен", "&Доп. экзамен");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(243)))), ((int)(((byte)(228)))), ((int)(((byte)(199))))), "Зачет", "&Зачет");
             this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(199)))), ((int)(((byte)(244)))), ((int)(((byte)(255))))), "Доп. зачет", "До&п. зачет");
+            this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(168)))), ((int)(((byte)(213)))), ((int)(((byte)(255))))), "Консультация", "&Консультация");
             this.schedulerStorage1.Appointments.Labels.Add(System.Drawing.Color.FromArgb(((int)(((byte)(207)))), ((int)(((byte)(219)))), ((int)(((byte)(152))))), "Иное", "&Иное");
         }
 
